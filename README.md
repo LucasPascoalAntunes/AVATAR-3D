@@ -58,4 +58,5 @@ public/
 - Lucas Pascoal Antunes — N093AB4
 - Christian Santos de Oliveira — F352870
 
+Turma CC7P41 — Ciências da Computação
 Universidade Paulista — UNIP, 2026
