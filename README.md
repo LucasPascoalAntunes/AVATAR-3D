@@ -1,6 +1,6 @@
 # AVATAR-3D
 
-Apresentador virtual 3D interativo para TCC — Tecnologia e Inovação na Saúde Pública.
+Apresentador virtual 3D interativo para TCC — Inteligência Artificial na Saúde Pública.
 
 Avatar 3D com lip sync, animações de gestos e expressões, narração por síntese de voz em português brasileiro.
 
