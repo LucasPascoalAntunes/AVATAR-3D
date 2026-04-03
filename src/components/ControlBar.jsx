@@ -37,9 +37,10 @@ export default function ControlBar() {
           const nextIdx = useStore.getState().currentSlide;
           const nextContent = TCC_SLIDES[nextIdx];
           if (nextContent) {
-            setActivePresenter(nextContent.presenter ?? 0);
+            const p = nextContent.presenter ?? 0;
+            setActivePresenter(p);
             setPlaying(true);
-            speak(nextContent.speech, onSpeechEnd);
+            speak(nextContent.speech, onSpeechEnd, { feminine: p === 1 });
           }
         }, 600);
       }, 800);
@@ -59,10 +60,11 @@ export default function ControlBar() {
     }
     const slide = TCC_SLIDES[currentSlide];
     if (slide) {
-      setActivePresenter(slide.presenter ?? 0);
+      const p = slide.presenter ?? 0;
+      setActivePresenter(p);
       setPlaying(true);
       setPaused(false);
-      speak(slide.speech, onSpeechEnd);
+      speak(slide.speech, onSpeechEnd, { feminine: p === 1 });
     }
   }, [isSpeaking, isPaused, currentSlide, setPlaying, setPaused, speak, pause, resume, onSpeechEnd]);
 

@@ -36,7 +36,6 @@ export function useSpeech() {
   const setMouthOpen = useStore(s => s.setMouthOpen);
   const setViseme = useStore(s => s.setViseme);
   const speechRate = useStore(s => s.speechRate);
-  const voicePitch = useStore(s => s.voicePitch);
 
   useEffect(() => {
     return () => {
@@ -94,7 +93,7 @@ export function useSpeech() {
     animFrameRef.current = requestAnimationFrame(animate);
   }, [speechRate, setMouthOpen, setViseme]);
 
-  const speak = useCallback((text, onEnd) => {
+  const speak = useCallback((text, onEnd, { feminine = false } = {}) => {
     window.speechSynthesis.cancel();
     clearSpeechTimers();
     if (!text) return;
@@ -102,14 +101,21 @@ export function useSpeech() {
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'pt-BR';
     utter.rate = speechRate;
-    utter.pitch = voicePitch;
+    const presenter = useStore.getState().activePresenter;
+    const pitch = useStore.getState().avatarProps[presenter]?.voicePitch ?? 1.0;
+    utter.pitch = pitch;
 
     const voices = window.speechSynthesis.getVoices();
     const ptBR = voices.filter(v => v.lang.startsWith('pt') && v.lang.includes('BR'));
     const ptAny = voices.filter(v => v.lang.startsWith('pt'));
     const pool = ptBR.length ? ptBR : ptAny;
-    const masculine = pool.find(v => MASCULINE_HINTS.test(v.name) && !FEMININE_HINTS.test(v.name));
-    utter.voice = masculine || pool[0] || null;
+    if (feminine) {
+      const fem = pool.find(v => FEMININE_HINTS.test(v.name) && !MASCULINE_HINTS.test(v.name));
+      utter.voice = fem || pool[0] || null;
+    } else {
+      const masc = pool.find(v => MASCULINE_HINTS.test(v.name) && !FEMININE_HINTS.test(v.name));
+      utter.voice = masc || pool[0] || null;
+    }
 
     keepAliveRef.current = setInterval(() => {
       if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
@@ -142,7 +148,7 @@ export function useSpeech() {
 
     utterRef.current = utter;
     window.speechSynthesis.speak(utter);
-  }, [clearSpeechTimers, speechRate, voicePitch, setSpeaking, setMouthOpen, setViseme, startMouthAnim]);
+  }, [clearSpeechTimers, speechRate, setSpeaking, setMouthOpen, setViseme, startMouthAnim]);
 
   const pause = useCallback(() => {
     clearSpeechTimers();

@@ -5,7 +5,10 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import useStore from '../store.js';
 
-const MODEL_URL = '/models/646d9dcdc8a5f5bddbfac913.glb';
+const MODEL_URLS = [
+  '/models/646d9dcdc8a5f5bddbfac913.glb',
+  '/models/avatar2.glb',
+];
 
 const EMOTE_ANIM = {
   wave: 'Greeting',
@@ -23,38 +26,59 @@ const EMOTE_ANIM = {
 
 const HIPS_POS = new THREE.Vector3(0, 1.01, 0.01);
 const CORR_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-const AVATAR_COLORS = [
-  null,
-  {
-    Wolf3D_Head:             '#8d5524',
-    Wolf3D_Body:             '#8d5524',
-    Wolf3D_Hair:             '#0a0a0a',
-    Wolf3D_Outfit_Top:       '#1a3a5c',
-    Wolf3D_Outfit_Bottom:    '#2a2a2a',
-    Wolf3D_Outfit_Footwear:  '#3b2314',
-    Wolf3D_Teeth:            '#e8dcc8',
-  },
-];
+
+const VISEME_TO_ARKIT = {
+  viseme_sil: {},
+  viseme_aa: { jawOpen: 0.7, mouthSmileLeft: 0.1, mouthSmileRight: 0.1 },
+  viseme_E:  { jawOpen: 0.3, mouthSmileLeft: 0.35, mouthSmileRight: 0.35 },
+  viseme_I:  { jawOpen: 0.15, mouthSmileLeft: 0.5, mouthSmileRight: 0.5 },
+  viseme_O:  { jawOpen: 0.5, mouthFunnel: 0.7 },
+  viseme_U:  { jawOpen: 0.2, mouthFunnel: 0.5, mouthPucker: 0.4 },
+  viseme_PP: { mouthClose: 0.8, mouthPucker: 0.3 },
+  viseme_FF: { jawOpen: 0.1, mouthUpperUpLeft: 0.3, mouthUpperUpRight: 0.3 },
+  viseme_TH: { jawOpen: 0.15, tongueOut: 0.3 },
+  viseme_DD: { jawOpen: 0.25 },
+  viseme_kk: { jawOpen: 0.2 },
+  viseme_CH: { jawOpen: 0.15, mouthFunnel: 0.3, mouthPucker: 0.2 },
+  viseme_SS: { jawOpen: 0.1, mouthSmileLeft: 0.2, mouthSmileRight: 0.2 },
+  viseme_nn: { jawOpen: 0.15, mouthSmileLeft: 0.1, mouthSmileRight: 0.1 },
+  viseme_RR: { jawOpen: 0.25 },
+};
+const ARKIT_MOUTH_KEYS = [...new Set(Object.values(VISEME_TO_ARKIT).flatMap(v => Object.keys(v)))];
+
+const COLOR_MESH_MAP = {
+  skinColor:    ['Wolf3D_Head', 'Wolf3D_Body', 'Streamoji_Head', 'Streamoji_Body'],
+  hairColor:    ['Wolf3D_Hair', 'Streamoji_Hair'],
+  topColor:     ['Wolf3D_Outfit_Top', 'Streamoji_Outfit_Top'],
+  bottomColor:  ['Wolf3D_Outfit_Bottom', 'Streamoji_Outfit_Bottom'],
+  shoeColor:    ['Wolf3D_Outfit_Footwear', 'Streamoji_Outfit_Footwear'],
+};
 
 export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   const group = useRef();
-  const { scene: originalScene } = useGLTF(MODEL_URL);
+  const modelUrl = MODEL_URLS[avatarId] || MODEL_URLS[0];
+  const { scene: originalScene } = useGLTF(modelUrl);
+  const avatarPropsForMe = useStore(s => s.avatarProps[avatarId]);
 
   const avatarScene = useMemo(() => {
-    const cloned = SkeletonUtils.clone(originalScene);
-    const overrides = AVATAR_COLORS[avatarId];
-    if (overrides) {
-      cloned.traverse(obj => {
-        if (!obj.isMesh || !obj.material) return;
-        const color = overrides[obj.name];
-        if (color) {
-          obj.material = obj.material.clone();
-          obj.material.color.set(color);
+    return SkeletonUtils.clone(originalScene);
+  }, [originalScene]);
+
+  useEffect(() => {
+    if (!avatarPropsForMe) return;
+    avatarScene.traverse(obj => {
+      if (!obj.isMesh || !obj.material) return;
+      for (const [propKey, meshNames] of Object.entries(COLOR_MESH_MAP)) {
+        if (meshNames.includes(obj.name) && avatarPropsForMe[propKey]) {
+          if (!obj.userData._clonedMat) {
+            obj.material = obj.material.clone();
+            obj.userData._clonedMat = true;
+          }
+          obj.material.color.set(avatarPropsForMe[propKey]);
         }
-      });
-    }
-    return cloned;
-  }, [originalScene, avatarId]);
+      }
+    });
+  }, [avatarScene, avatarPropsForMe]);
 
   const { animations: idleAnim } = useFBX('/animations/Idle.fbx');
   const { animations: greetAnim } = useFBX('/animations/StandingGreeting.fbx');
@@ -124,6 +148,7 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   const timeoutRef = useRef(null);
   const bonesRef = useRef({});
   const clockRef = useRef(0);
+  const isArkitRef = useRef(false);
 
   const currentEmote = useStore(s => s.currentEmote);
   const emoteVersion = useStore(s => s.emoteVersion);
@@ -144,6 +169,7 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
     });
     morphMeshesRef.current = morphMeshes;
     bonesRef.current = bones;
+    isArkitRef.current = morphMeshes.some(m => 'jawOpen' in (m.morphTargetDictionary || {}));
 
     const armature = avatarScene.getObjectByName('Armature');
     if (armature) armature.quaternion.identity();
@@ -235,12 +261,23 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
       const dict = mesh.morphTargetDictionary;
       const inf = mesh.morphTargetInfluences;
       if (!dict || !inf) return;
-      Object.keys(dict).forEach(key => {
-        if (!key.startsWith('viseme_')) return;
-        const idx = dict[key];
-        const target = (isThisSpeaking && currentViseme === key) ? 1 : 0;
-        inf[idx] = THREE.MathUtils.lerp(inf[idx], target, lerp);
-      });
+
+      if (isArkitRef.current) {
+        const targets = isThisSpeaking ? (VISEME_TO_ARKIT[currentViseme] || {}) : {};
+        ARKIT_MOUTH_KEYS.forEach(key => {
+          const idx = dict[key];
+          if (idx === undefined) return;
+          const goal = targets[key] || 0;
+          inf[idx] = THREE.MathUtils.lerp(inf[idx], goal, lerp);
+        });
+      } else {
+        Object.keys(dict).forEach(key => {
+          if (!key.startsWith('viseme_')) return;
+          const idx = dict[key];
+          const target = (isThisSpeaking && currentViseme === key) ? 1 : 0;
+          inf[idx] = THREE.MathUtils.lerp(inf[idx], target, lerp);
+        });
+      }
     });
   }, 1);
 
@@ -251,4 +288,5 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   );
 }
 
-useGLTF.preload(MODEL_URL);
+useGLTF.preload(MODEL_URLS[0]);
+useGLTF.preload(MODEL_URLS[1]);

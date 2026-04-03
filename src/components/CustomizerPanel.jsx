@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store.js';
 import { CloseIcon } from './Icons.jsx';
@@ -10,23 +10,34 @@ const VOICE_PRESETS = [
   { pitch: 1.5, label: 'Aguda' },
 ];
 
+const COLOR_FIELDS = [
+  { key: 'skinColor',  label: 'Pele' },
+  { key: 'eyeColor',   label: 'Olhos' },
+  { key: 'hairColor',  label: 'Cabelo' },
+  { key: 'topColor',   label: 'Roupa (topo)' },
+  { key: 'bottomColor', label: 'Roupa (baixo)' },
+  { key: 'shoeColor',  label: 'Sapato' },
+];
+
+const EXPRESSIONS = [
+  { key: 'neutral', label: 'Neutro' },
+  { key: 'happy', label: 'Feliz' },
+  { key: 'sad', label: 'Triste' },
+  { key: 'angry', label: 'Bravo' },
+  { key: 'surprised', label: 'Surpreso' },
+  { key: 'think', label: 'Pensando' },
+];
+
 export default function CustomizerPanel() {
   const show = useStore(s => s.showCustomizer);
   const toggle = useStore(s => s.toggleCustomizer);
-  const set = useStore(s => s.setAvatarProp);
-
-  const voicePitch = useStore(s => s.voicePitch);
+  const setProp = useStore(s => s.setAvatarProp);
+  const avatarProps = useStore(s => s.avatarProps);
   const currentExpression = useStore(s => s.currentExpression);
   const expressionIntensity = useStore(s => s.expressionIntensity);
 
-  const EXPRESSIONS = [
-    { key: 'neutral', label: 'Neutro' },
-    { key: 'happy', label: 'Feliz' },
-    { key: 'sad', label: 'Triste' },
-    { key: 'angry', label: 'Bravo' },
-    { key: 'surprised', label: 'Surpreso' },
-    { key: 'think', label: 'Pensando' },
-  ];
+  const [tab, setTab] = useState(0);
+  const props = avatarProps[tab] || {};
 
   return (
     <AnimatePresence>
@@ -39,33 +50,49 @@ export default function CustomizerPanel() {
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         >
           <div className="cust-header">
-            <h3>Controles do Avatar</h3>
+            <h3>Personalizar</h3>
             <button className="cust-close" onClick={toggle}><CloseIcon /></button>
           </div>
 
-          <div className="cust-scroll">
-            <div className="cust-row">
-              <label className="cust-label">Modelo 3D</label>
-              <p style={{ fontSize: '0.78rem', color: '#9898b0', lineHeight: 1.5, margin: 0 }}>
-                Avatar 3D humanoid carregado via GLB (Three.js) com esqueleto Mixamo completo.
-                Animações de gestos, expressões por bones e suporte pronto para visemes reais em avatares com blendshapes faciais.
-              </p>
-            </div>
+          <div className="cust-avatar-tabs">
+            <button className={`cust-tab ${tab === 0 ? 'active' : ''}`} onClick={() => setTab(0)}>
+              Avatar 1 (Masc.)
+            </button>
+            <button className={`cust-tab ${tab === 1 ? 'active' : ''}`} onClick={() => setTab(1)}>
+              Avatar 2 (Fem.)
+            </button>
+          </div>
 
+          <div className="cust-scroll">
             <div className="cust-row">
               <label className="cust-label">Voz</label>
               <div className="btn-group">
                 {VOICE_PRESETS.map(vp => (
                   <button
                     key={vp.pitch}
-                    className={`group-btn ${voicePitch === vp.pitch ? 'active' : ''}`}
-                    onClick={() => set('voicePitch', vp.pitch)}
+                    className={`group-btn ${props.voicePitch === vp.pitch ? 'active' : ''}`}
+                    onClick={() => setProp(tab, 'voicePitch', vp.pitch)}
                   >
                     {vp.label}
                   </button>
                 ))}
               </div>
             </div>
+
+            {COLOR_FIELDS.map(cf => (
+              <div className="cust-row" key={cf.key}>
+                <label className="cust-label">{cf.label}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="color"
+                    value={props[cf.key] || '#888888'}
+                    onChange={e => setProp(tab, cf.key, e.target.value)}
+                    style={{ width: 36, height: 28, border: 'none', background: 'none', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{props[cf.key]}</span>
+                </div>
+              </div>
+            ))}
 
             <div className="cust-row">
               <label className="cust-label">Expressão</label>
@@ -75,8 +102,7 @@ export default function CustomizerPanel() {
                     key={ex.key}
                     className={`group-btn ${currentExpression === ex.key ? 'active' : ''}`}
                     onClick={() => {
-                      set('currentExpression', ex.key);
-                      set('expressionIntensity', 1.0);
+                      useStore.getState().setExpression(ex.key, 1.0);
                     }}
                   >
                     {ex.label}
@@ -93,11 +119,8 @@ export default function CustomizerPanel() {
                 max="1"
                 step="0.1"
                 value={expressionIntensity}
-                onChange={e => set('expressionIntensity', parseFloat(e.target.value))}
-                style={{
-                  width: '100%',
-                  accentColor: 'var(--accent)',
-                }}
+                onChange={e => useStore.getState().setExpression(currentExpression, parseFloat(e.target.value))}
+                style={{ width: '100%', accentColor: 'var(--accent)' }}
               />
             </div>
           </div>

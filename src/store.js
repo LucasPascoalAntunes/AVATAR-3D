@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 
+const defaultAvatarProps = (isFemale) => ({
+  voicePitch: isFemale ? 1.2 : 1.0,
+  skinColor: isFemale ? '#deb587' : '#c68642',
+  eyeColor: isFemale ? '#6b8e23' : '#4a90d9',
+  hairColor: isFemale ? '#3b1a08' : '#2a1a0e',
+  topColor: isFemale ? '#5c1a3a' : '#1a1a2e',
+  bottomColor: isFemale ? '#2a1a2a' : '#1a1a2e',
+  shoeColor: isFemale ? '#4a2a1a' : '#1a1a1a',
+});
+
 const useStore = create((set, get) => ({
   currentSlide: 0,
   isPlaying: false,
@@ -10,20 +20,9 @@ const useStore = create((set, get) => ({
   speechRate: 1.0,
   autoAdvance: true,
   totalSlides: 5,
-
-  gender: 'male',
-  skinColor: '#c68642',
-  eyeColor: '#4a90d9',
-  hairColor: '#2a1a0e',
-  hairStyle: 'medium',
-  lipColor: '#c45b6e',
-  bodyType: 'normal',
-  outfitStyle: 'formal',
-  topColor: '#1a1a2e',
-  bottomColor: '#1a1a2e',
-  shoeColor: '#1a1a1a',
-  voicePitch: 1.0,
   activePresenter: 0,
+
+  avatarProps: [defaultAvatarProps(false), defaultAvatarProps(true)],
 
   currentEmote: null,
   emoteVersion: 0,
@@ -58,7 +57,11 @@ const useStore = create((set, get) => ({
   setPaused: (v) => set({ isPaused: v }),
   setActivePresenter: (v) => set({ activePresenter: v }),
 
-  setAvatarProp: (key, value) => set({ [key]: value }),
+  setAvatarProp: (avatarIdx, key, value) => {
+    const props = [...get().avatarProps];
+    props[avatarIdx] = { ...props[avatarIdx], [key]: value };
+    set({ avatarProps: props });
+  },
 
   triggerEmote: (emoteKey, target = 0) => {
     const prev = get().emoteTimer;
