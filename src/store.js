@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AVATAR_CATALOG } from './data/avatarCatalog.js';
 
 const defaultAvatarProps = (isFemale) => ({
-  voicePitch: isFemale ? 1.2 : 1.0,
+  voicePitch: isFemale ? 1.5 : 0.85,
   skinColor: isFemale ? '#deb587' : '#c68642',
   eyeColor: isFemale ? '#6b8e23' : '#4a90d9',
   hairColor: isFemale ? '#3b1a08' : '#2a1a0e',
@@ -23,7 +23,7 @@ const useStore = create((set, get) => ({
   totalSlides: 5,
   activePresenter: 0,
 
-  selectedAvatars: [1, 2],
+  selectedAvatars: [0, 1],
   avatarProps: [defaultAvatarProps(false), defaultAvatarProps(true)],
 
   currentEmote: null,

@@ -2,8 +2,8 @@ import { useCallback, useRef, useEffect } from 'react';
 import useStore from '../store.js';
 
 const VOWELS = /[aeiouáéíóúâêôãõ]/gi;
-const MASCULINE_HINTS = /male|masculino|daniel|ricardo|marcos|carlos|paulo|felipe/i;
-const FEMININE_HINTS = /female|feminino|maria|francisca|luciana|fernanda|vitória/i;
+const MASCULINE_HINTS = /\bmale\b|masculino|daniel|ricardo|marcos|carlos|paulo|felipe|humberto/i;
+const FEMININE_HINTS = /\bfemale\b|feminino|maria|francisca|luciana|fernanda|vitória|heloisa|thalita/i;
 
 const CHAR_TO_VISEME = {
   'a': 'viseme_aa', 'á': 'viseme_aa', 'â': 'viseme_aa', 'ã': 'viseme_aa',
@@ -108,13 +108,20 @@ export function useSpeech() {
     const voices = window.speechSynthesis.getVoices();
     const ptBR = voices.filter(v => v.lang.startsWith('pt') && v.lang.includes('BR'));
     const ptAny = voices.filter(v => v.lang.startsWith('pt'));
-    const pool = ptBR.length ? ptBR : ptAny;
+    const pool = ptBR.length ? ptBR : (ptAny.length ? ptAny : voices);
+
+    let chosen = null;
     if (feminine) {
-      const fem = pool.find(v => FEMININE_HINTS.test(v.name) && !MASCULINE_HINTS.test(v.name));
-      utter.voice = fem || pool[0] || null;
+      chosen = pool.find(v => FEMININE_HINTS.test(v.name) && !MASCULINE_HINTS.test(v.name));
+      if (!chosen) chosen = pool.find(v => FEMININE_HINTS.test(v.name));
     } else {
-      const masc = pool.find(v => MASCULINE_HINTS.test(v.name) && !FEMININE_HINTS.test(v.name));
-      utter.voice = masc || pool[0] || null;
+      chosen = pool.find(v => MASCULINE_HINTS.test(v.name) && !FEMININE_HINTS.test(v.name));
+      if (!chosen) chosen = pool.find(v => MASCULINE_HINTS.test(v.name));
+    }
+    utter.voice = chosen || pool[0] || null;
+
+    if (!chosen && pool.length <= 1) {
+      utter.pitch = feminine ? Math.max(pitch, 1.4) : Math.min(pitch, 0.8);
     }
 
     keepAliveRef.current = setInterval(() => {

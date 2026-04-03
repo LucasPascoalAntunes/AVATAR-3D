@@ -1,5 +1,4 @@
 export const AVATAR_CATALOG = [
-  { filename: 'avatar_0.glb', name: 'Teste', gender: 'male' },
   { filename: 'avatar_1.glb', name: 'Lucas', gender: 'male' },
   { filename: 'avatar_2.glb', name: 'Ana', gender: 'female' },
   { filename: 'avatar_3.glb', name: 'Christian', gender: 'male' },

@@ -5,9 +5,9 @@ import { AVATAR_CATALOG } from '../data/avatarCatalog.js';
 import { CloseIcon } from './Icons.jsx';
 
 const VOICE_PRESETS = [
-  { pitch: 0.8, label: 'Grave' },
-  { pitch: 1.0, label: 'Normal' },
-  { pitch: 1.2, label: 'Média' },
+  { pitch: 0.7, label: 'Grave' },
+  { pitch: 0.85, label: 'Normal ♂' },
+  { pitch: 1.2, label: 'Normal ♀' },
   { pitch: 1.5, label: 'Aguda' },
 ];
 

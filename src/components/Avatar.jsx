@@ -42,6 +42,16 @@ const VISEME_TO_ARKIT = {
 };
 const ARKIT_MOUTH_KEYS = [...new Set(Object.values(VISEME_TO_ARKIT).flatMap(v => Object.keys(v)))];
 
+const EXPRESSION_TO_ARKIT = {
+  neutral: {},
+  happy: { mouthSmileLeft: 0.7, mouthSmileRight: 0.7, cheekSquintLeft: 0.4, cheekSquintRight: 0.4 },
+  sad: { mouthFrownLeft: 0.6, mouthFrownRight: 0.6, browInnerUp: 0.5 },
+  angry: { browDownLeft: 0.7, browDownRight: 0.7, mouthFrownLeft: 0.4, mouthFrownRight: 0.4, jawForward: 0.3 },
+  surprised: { eyeWideLeft: 0.8, eyeWideRight: 0.8, browOuterUpLeft: 0.6, browOuterUpRight: 0.6, jawOpen: 0.4 },
+  think: { browInnerUp: 0.4, eyeSquintLeft: 0.5, mouthPucker: 0.3 },
+};
+const ARKIT_EXPR_KEYS = [...new Set(Object.values(EXPRESSION_TO_ARKIT).flatMap(v => Object.keys(v)))];
+
 const COLOR_MESH_MAP = {
   skinColor:    ['Streamoji_Head', 'Streamoji_Body'],
   eyeColor:     ['EyeLeft', 'EyeRight'],
@@ -155,6 +165,7 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   useEffect(() => {
     const morphMeshes = [];
     const bones = {};
+    const boneNames = new Set();
     avatarScene.traverse(obj => {
       if (obj.isMesh || obj.isSkinnedMesh) {
         obj.castShadow = true;
@@ -164,11 +175,24 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
       if (obj.morphTargetDictionary && obj.morphTargetInfluences) {
         morphMeshes.push(obj);
       }
-      if (obj.isBone) bones[obj.name] = obj;
+      if (obj.isBone) {
+        bones[obj.name] = obj;
+        boneNames.add(obj.name);
+      }
     });
     morphMeshesRef.current = morphMeshes;
     bonesRef.current = bones;
     isArkitRef.current = morphMeshes.some(m => 'jawOpen' in (m.morphTargetDictionary || {}));
+
+    if (boneNames.size > 0) {
+      Object.values(actions).forEach(action => {
+        const clip = action.getClip();
+        clip.tracks = clip.tracks.filter(track => {
+          const boneName = track.name.split('.')[0];
+          return boneNames.has(boneName);
+        });
+      });
+    }
 
     const armature = avatarScene.getObjectByName('Armature');
     if (armature) armature.quaternion.identity();
@@ -214,7 +238,7 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
     clockRef.current += d;
     const t = clockRef.current;
 
-    const { isSpeaking, activePresenter, currentViseme } = useStore.getState();
+    const { isSpeaking, activePresenter, currentViseme, currentExpression, expressionIntensity } = useStore.getState();
     const isThisSpeaking = isSpeaking && activePresenter === avatarId;
 
     const armature = avatarScene.getObjectByName('Armature');
@@ -227,14 +251,14 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
       const _q = new THREE.Quaternion();
       const _e = new THREE.Euler();
 
-      const rArm = bonesRef.current['RightUpperArm'];
+      const rArm = bonesRef.current['RightArm'];
       if (rArm) {
         _e.set(0, 0, -0.12);
         _q.setFromEuler(_e);
         rArm.quaternion.multiply(_q);
       }
 
-      const lArm = bonesRef.current['LeftUpperArm'];
+      const lArm = bonesRef.current['LeftArm'];
       if (lArm) {
         _e.set(0, 0, 0.12);
         _q.setFromEuler(_e);
@@ -280,6 +304,15 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
           const idx = dict[key];
           if (idx === undefined) return;
           const goal = targets[key] || 0;
+          inf[idx] = THREE.MathUtils.lerp(inf[idx], goal, lerp);
+        });
+
+        const exprTargets = EXPRESSION_TO_ARKIT[currentExpression] || {};
+        ARKIT_EXPR_KEYS.forEach(key => {
+          if (ARKIT_MOUTH_KEYS.includes(key) && isThisSpeaking) return;
+          const idx = dict[key];
+          if (idx === undefined) return;
+          const goal = (exprTargets[key] || 0) * expressionIntensity;
           inf[idx] = THREE.MathUtils.lerp(inf[idx], goal, lerp);
         });
       } else {
