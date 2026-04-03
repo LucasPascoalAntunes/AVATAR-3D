@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useFBX, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import useStore from '../store.js';
 
 const MODEL_URL = '/models/646d9dcdc8a5f5bddbfac913.glb';
@@ -22,11 +23,38 @@ const EMOTE_ANIM = {
 
 const HIPS_POS = new THREE.Vector3(0, 1.01, 0.01);
 const CORR_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-const IDENTITY_Q = new THREE.Quaternion();
+const AVATAR_COLORS = [
+  null,
+  {
+    Wolf3D_Head:             '#8d5524',
+    Wolf3D_Body:             '#8d5524',
+    Wolf3D_Hair:             '#0a0a0a',
+    Wolf3D_Outfit_Top:       '#1a3a5c',
+    Wolf3D_Outfit_Bottom:    '#2a2a2a',
+    Wolf3D_Outfit_Footwear:  '#3b2314',
+    Wolf3D_Teeth:            '#e8dcc8',
+  },
+];
 
-export default function Avatar() {
+export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   const group = useRef();
-  const { scene } = useGLTF(MODEL_URL);
+  const { scene: originalScene } = useGLTF(MODEL_URL);
+
+  const avatarScene = useMemo(() => {
+    const cloned = SkeletonUtils.clone(originalScene);
+    const overrides = AVATAR_COLORS[avatarId];
+    if (overrides) {
+      cloned.traverse(obj => {
+        if (!obj.isMesh || !obj.material) return;
+        const color = overrides[obj.name];
+        if (color) {
+          obj.material = obj.material.clone();
+          obj.material.color.set(color);
+        }
+      });
+    }
+    return cloned;
+  }, [originalScene, avatarId]);
 
   const { animations: idleAnim } = useFBX('/animations/Idle.fbx');
   const { animations: greetAnim } = useFBX('/animations/StandingGreeting.fbx');
@@ -97,15 +125,13 @@ export default function Avatar() {
   const bonesRef = useRef({});
   const clockRef = useRef(0);
 
-  const isSpeaking = useStore(s => s.isSpeaking);
-  const currentViseme = useStore(s => s.currentViseme);
   const currentEmote = useStore(s => s.currentEmote);
   const emoteVersion = useStore(s => s.emoteVersion);
 
   useEffect(() => {
     const morphMeshes = [];
     const bones = {};
-    scene.traverse(obj => {
+    avatarScene.traverse(obj => {
       if (obj.isMesh || obj.isSkinnedMesh) {
         obj.castShadow = true;
         obj.receiveShadow = true;
@@ -119,13 +145,14 @@ export default function Avatar() {
     morphMeshesRef.current = morphMeshes;
     bonesRef.current = bones;
 
-    const armature = scene.getObjectByName('Armature');
+    const armature = avatarScene.getObjectByName('Armature');
     if (armature) armature.quaternion.identity();
 
     if (actions['Idle']) actions['Idle'].reset().fadeIn(0.3).play();
-  }, [scene, actions]);
+  }, [avatarScene, actions]);
 
   useEffect(() => {
+    if (useStore.getState().emoteTarget !== avatarId) return;
     if (!currentEmote || emoteVersion === 0) return;
     const animName = EMOTE_ANIM[currentEmote];
     if (!animName || !actions[animName]) return;
@@ -154,7 +181,7 @@ export default function Avatar() {
         currentAnimRef.current = 'Idle';
       }
     }, dur);
-  }, [currentEmote, emoteVersion, actions]);
+  }, [currentEmote, emoteVersion, actions, avatarId]);
 
   useFrame((_, delta) => {
     const d = Math.min(delta, 0.05);
@@ -162,13 +189,16 @@ export default function Avatar() {
     clockRef.current += d;
     const t = clockRef.current;
 
-    const armature = scene.getObjectByName('Armature');
+    const { isSpeaking, activePresenter, currentViseme } = useStore.getState();
+    const isThisSpeaking = isSpeaking && activePresenter === avatarId;
+
+    const armature = avatarScene.getObjectByName('Armature');
     if (armature) armature.quaternion.identity();
 
     const hips = bonesRef.current['Hips'];
     if (hips) hips.position.copy(HIPS_POS);
 
-    if (isSpeaking) {
+    if (isThisSpeaking) {
       const _q = new THREE.Quaternion();
       const _e = new THREE.Euler();
 
@@ -208,15 +238,15 @@ export default function Avatar() {
       Object.keys(dict).forEach(key => {
         if (!key.startsWith('viseme_')) return;
         const idx = dict[key];
-        const target = (isSpeaking && currentViseme === key) ? 1 : 0;
+        const target = (isThisSpeaking && currentViseme === key) ? 1 : 0;
         inf[idx] = THREE.MathUtils.lerp(inf[idx], target, lerp);
       });
     });
   }, 1);
 
   return (
-    <group ref={group} dispose={null}>
-      <primitive object={scene} />
+    <group ref={group} dispose={null} position={position}>
+      <primitive object={avatarScene} />
     </group>
   );
 }

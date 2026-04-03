@@ -1,6 +1,7 @@
 export const TCC_SLIDES = [
   {
     id: 0,
+    presenter: 0,
     section: 'Introdução',
     title: 'Inteligência Artificial na Saúde Pública',
     subtitle: 'Trabalho de Conclusão de Curso — UNIP 2026',
@@ -17,6 +18,7 @@ export const TCC_SLIDES = [
   },
   {
     id: 1,
+    presenter: 1,
     section: 'Objetivos',
     title: 'Objetivos da Pesquisa',
     subtitle: 'O que buscamos responder',
@@ -36,6 +38,7 @@ export const TCC_SLIDES = [
   },
   {
     id: 2,
+    presenter: 0,
     section: 'Metodologia',
     title: 'Como a Pesquisa Foi Conduzida',
     subtitle: 'Abordagem e métodos utilizados',
@@ -56,6 +59,7 @@ export const TCC_SLIDES = [
   },
   {
     id: 3,
+    presenter: 1,
     section: 'Resultados',
     title: 'Principais Achados',
     subtitle: 'O que os dados e casos revelaram',
@@ -78,6 +82,7 @@ export const TCC_SLIDES = [
   },
   {
     id: 4,
+    presenter: 0,
     section: 'Conclusão',
     title: 'Conclusão e Próximos Passos',
     subtitle: 'O que aprendemos e o caminho a seguir',

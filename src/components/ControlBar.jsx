@@ -21,6 +21,7 @@ export default function ControlBar() {
   const prevSlide = useStore(s => s.prevSlide);
   const setSpeechRate = useStore(s => s.setSpeechRate);
   const setAutoAdvance = useStore(s => s.setAutoAdvance);
+  const setActivePresenter = useStore(s => s.setActivePresenter);
   const triggerEmote = useStore(s => s.triggerEmote);
   const totalSlides = useStore(s => s.totalSlides);
 
@@ -36,13 +37,14 @@ export default function ControlBar() {
           const nextIdx = useStore.getState().currentSlide;
           const nextContent = TCC_SLIDES[nextIdx];
           if (nextContent) {
+            setActivePresenter(nextContent.presenter ?? 0);
             setPlaying(true);
             speak(nextContent.speech, onSpeechEnd);
           }
         }, 600);
       }, 800);
     }
-  }, [autoAdvance, currentSlide, totalSlides, nextSlide, setPlaying, setPaused, speak]);
+  }, [autoAdvance, currentSlide, totalSlides, nextSlide, setPlaying, setPaused, setActivePresenter, speak]);
 
   const handlePlayPause = useCallback(() => {
     if (isSpeaking && !isPaused) {
@@ -57,6 +59,7 @@ export default function ControlBar() {
     }
     const slide = TCC_SLIDES[currentSlide];
     if (slide) {
+      setActivePresenter(slide.presenter ?? 0);
       setPlaying(true);
       setPaused(false);
       speak(slide.speech, onSpeechEnd);
@@ -81,6 +84,7 @@ export default function ControlBar() {
 
   const speeds = [0.75, 1.0, 1.25, 1.5];
   const [showEmotes, setShowEmotes] = React.useState(false);
+  const [emoteAvatarIdx, setEmoteAvatarIdx] = React.useState(0);
 
   return (
     <div className="control-bar">
@@ -134,13 +138,26 @@ export default function ControlBar() {
           <button
             className="ctrl-btn"
             onClick={() => setShowEmotes(!showEmotes)}
-            disabled={isSpeaking}
-            title={isSpeaking ? 'Pause a fala para usar emotes' : 'Emotes'}
+            title="Emotes"
           >
             <SmileIcon size={16} /> Emotes
           </button>
-          {showEmotes && !isSpeaking && (
+          {showEmotes && (
             <div className="emote-dropdown">
+              <div className="emote-avatar-tabs">
+                <button
+                  className={`emote-tab ${emoteAvatarIdx === 0 ? 'active' : ''}`}
+                  onClick={() => setEmoteAvatarIdx(0)}
+                >
+                  Avatar 1
+                </button>
+                <button
+                  className={`emote-tab ${emoteAvatarIdx === 1 ? 'active' : ''}`}
+                  onClick={() => setEmoteAvatarIdx(1)}
+                >
+                  Avatar 2
+                </button>
+              </div>
               {Object.entries(EMOTE_CATEGORIES).map(([catKey, cat]) => (
                 <div key={catKey} className="emote-category">
                   <div className="emote-cat-label">{cat.label}</div>
@@ -149,7 +166,7 @@ export default function ControlBar() {
                       <button
                         key={em.key}
                         className="emote-btn"
-                        onClick={() => { triggerEmote(em.key); setShowEmotes(false); }}
+                        onClick={() => { triggerEmote(em.key, emoteAvatarIdx); setShowEmotes(false); }}
                       >
                         <EmoteIcon name={em.icon} size={14} /> {em.label}
                       </button>

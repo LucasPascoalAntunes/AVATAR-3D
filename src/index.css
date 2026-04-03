@@ -339,8 +339,37 @@ html, body, #root {
   border-radius: var(--radius);
   padding: 12px;
   backdrop-filter: blur(20px);
-  max-height: 360px;
+  max-height: 400px;
   overflow-y: auto;
+}
+
+.emote-avatar-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.emote-tab {
+  flex: 1;
+  padding: 6px 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.emote-tab.active {
+  background: rgba(0,212,255,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.emote-tab:hover:not(.active) {
+  background: rgba(255,255,255,0.08);
 }
 
 .emote-category { margin-bottom: 12px; }

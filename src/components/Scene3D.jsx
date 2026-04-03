@@ -19,11 +19,11 @@ function Platform() {
   return (
     <group position={[0, 0.005, 0]}>
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <circleGeometry args={[0.8, 64]} />
+        <circleGeometry args={[1.3, 64]} />
         <meshStandardMaterial color="#0d0d14" roughness={0.3} metalness={0.4} />
       </mesh>
       <group ref={ringRef}>
-        {[0.6, 0.7, 0.76].map((r, i) => (
+        {[1.0, 1.1, 1.16].map((r, i) => (
           <mesh key={i} rotation-x={-Math.PI / 2} position-y={0.003}>
             <ringGeometry args={[r - 0.006, r, 64]} />
             <meshStandardMaterial
@@ -122,7 +122,8 @@ function SceneContent() {
 
       <Ground />
       <Platform />
-      <Avatar />
+      <Avatar avatarId={0} position={[-0.55, 0, 0]} />
+      <Avatar avatarId={1} position={[0.55, 0, 0]} />
       <Particles count={25} />
 
       <ContactShadows
@@ -149,8 +150,8 @@ export default function Scene3D() {
       shadows
       dpr={[1, 2]}
       camera={{
-        position: [0, 1.1, 2.8],
-        fov: 40,
+        position: [0, 1.1, 3.5],
+        fov: 45,
         near: 0.1,
         far: 100,
       }}
