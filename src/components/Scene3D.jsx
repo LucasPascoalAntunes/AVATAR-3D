@@ -87,6 +87,7 @@ function Ground() {
 }
 
 function SceneContent() {
+  const selectedAvatars = useStore(s => s.selectedAvatars);
   return (
     <>
       <ambientLight intensity={0.5} />
@@ -122,8 +123,8 @@ function SceneContent() {
 
       <Ground />
       <Platform />
-      <Avatar avatarId={0} position={[-0.55, 0, 0]} />
-      <Avatar avatarId={1} position={[0.55, 0, 0]} />
+      <Avatar key={`a0-${selectedAvatars[0]}`} avatarId={0} position={[-0.55, 0, 0]} />
+      <Avatar key={`a1-${selectedAvatars[1]}`} avatarId={1} position={[0.55, 0, 0]} />
       <Particles count={25} />
 
       <ContactShadows

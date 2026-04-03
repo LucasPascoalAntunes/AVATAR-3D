@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import useStore from '../store.js';
 import { TCC_SLIDES } from '../data/tccContent.js';
+import { AVATAR_CATALOG } from '../data/avatarCatalog.js';
 import { useSpeech } from '../hooks/useSpeech.js';
 import { EMOTE_CATEGORIES } from '../engine/EmoteLibrary.js';
 import {
@@ -24,6 +25,7 @@ export default function ControlBar() {
   const setActivePresenter = useStore(s => s.setActivePresenter);
   const triggerEmote = useStore(s => s.triggerEmote);
   const totalSlides = useStore(s => s.totalSlides);
+  const selectedAvatars = useStore(s => s.selectedAvatars);
 
   const { speak, pause, resume, stop } = useSpeech();
 
@@ -40,7 +42,9 @@ export default function ControlBar() {
             const p = nextContent.presenter ?? 0;
             setActivePresenter(p);
             setPlaying(true);
-            speak(nextContent.speech, onSpeechEnd, { feminine: p === 1 });
+            const selAv = useStore.getState().selectedAvatars;
+            const isFem = AVATAR_CATALOG[selAv[p]]?.gender === 'female';
+            speak(nextContent.speech, onSpeechEnd, { feminine: isFem });
           }
         }, 600);
       }, 800);
@@ -64,7 +68,9 @@ export default function ControlBar() {
       setActivePresenter(p);
       setPlaying(true);
       setPaused(false);
-      speak(slide.speech, onSpeechEnd, { feminine: p === 1 });
+      const selAv = useStore.getState().selectedAvatars;
+      const isFem = AVATAR_CATALOG[selAv[p]]?.gender === 'female';
+      speak(slide.speech, onSpeechEnd, { feminine: isFem });
     }
   }, [isSpeaking, isPaused, currentSlide, setPlaying, setPaused, speak, pause, resume, onSpeechEnd]);
 
@@ -151,13 +157,13 @@ export default function ControlBar() {
                   className={`emote-tab ${emoteAvatarIdx === 0 ? 'active' : ''}`}
                   onClick={() => setEmoteAvatarIdx(0)}
                 >
-                  Avatar 1
+                  {AVATAR_CATALOG[selectedAvatars[0]]?.name || 'Avatar 1'}
                 </button>
                 <button
                   className={`emote-tab ${emoteAvatarIdx === 1 ? 'active' : ''}`}
                   onClick={() => setEmoteAvatarIdx(1)}
                 >
-                  Avatar 2
+                  {AVATAR_CATALOG[selectedAvatars[1]]?.name || 'Avatar 2'}
                 </button>
               </div>
               {Object.entries(EMOTE_CATEGORIES).map(([catKey, cat]) => (

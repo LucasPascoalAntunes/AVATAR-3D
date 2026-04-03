@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store.js';
+import { AVATAR_CATALOG } from '../data/avatarCatalog.js';
 import { CloseIcon } from './Icons.jsx';
 
 const VOICE_PRESETS = [
@@ -33,6 +34,8 @@ export default function CustomizerPanel() {
   const toggle = useStore(s => s.toggleCustomizer);
   const setProp = useStore(s => s.setAvatarProp);
   const avatarProps = useStore(s => s.avatarProps);
+  const selectedAvatars = useStore(s => s.selectedAvatars);
+  const setSelectedAvatar = useStore(s => s.setSelectedAvatar);
   const currentExpression = useStore(s => s.currentExpression);
   const expressionIntensity = useStore(s => s.expressionIntensity);
 
@@ -56,14 +59,29 @@ export default function CustomizerPanel() {
 
           <div className="cust-avatar-tabs">
             <button className={`cust-tab ${tab === 0 ? 'active' : ''}`} onClick={() => setTab(0)}>
-              Avatar 1 (Masc.)
+              {AVATAR_CATALOG[selectedAvatars[0]]?.name || 'Avatar 1'} (Esq.)
             </button>
             <button className={`cust-tab ${tab === 1 ? 'active' : ''}`} onClick={() => setTab(1)}>
-              Avatar 2 (Fem.)
+              {AVATAR_CATALOG[selectedAvatars[1]]?.name || 'Avatar 2'} (Dir.)
             </button>
           </div>
 
           <div className="cust-scroll">
+            <div className="cust-row">
+              <label className="cust-label">Modelo</label>
+              <select
+                className="avatar-select"
+                value={selectedAvatars[tab]}
+                onChange={e => setSelectedAvatar(tab, Number(e.target.value))}
+              >
+                {AVATAR_CATALOG.map((av, i) => (
+                  <option key={i} value={i}>
+                    {av.name} {av.gender === 'male' ? '♂' : '♀'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="cust-row">
               <label className="cust-label">Voz</label>
               <div className="btn-group">

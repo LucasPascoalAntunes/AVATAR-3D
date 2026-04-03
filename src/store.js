@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { AVATAR_CATALOG } from './data/avatarCatalog.js';
 
 const defaultAvatarProps = (isFemale) => ({
   voicePitch: isFemale ? 1.2 : 1.0,
@@ -22,6 +23,7 @@ const useStore = create((set, get) => ({
   totalSlides: 5,
   activePresenter: 0,
 
+  selectedAvatars: [1, 2],
   avatarProps: [defaultAvatarProps(false), defaultAvatarProps(true)],
 
   currentEmote: null,
@@ -56,6 +58,16 @@ const useStore = create((set, get) => ({
   setAutoAdvance: (v) => set({ autoAdvance: v }),
   setPaused: (v) => set({ isPaused: v }),
   setActivePresenter: (v) => set({ activePresenter: v }),
+
+  setSelectedAvatar: (slot, catalogIdx) => {
+    const sel = [...get().selectedAvatars];
+    sel[slot] = catalogIdx;
+    const gender = AVATAR_CATALOG[catalogIdx]?.gender;
+    const isFemale = gender === 'female';
+    const props = [...get().avatarProps];
+    props[slot] = defaultAvatarProps(isFemale);
+    set({ selectedAvatars: sel, avatarProps: props });
+  },
 
   setAvatarProp: (avatarIdx, key, value) => {
     const props = [...get().avatarProps];

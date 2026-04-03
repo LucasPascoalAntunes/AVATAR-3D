@@ -493,6 +493,28 @@ html, body, #root {
   margin-bottom: 8px;
 }
 
+.avatar-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.avatar-select:focus {
+  border-color: var(--accent);
+}
+
+.avatar-select option {
+  background: #1a1a2e;
+  color: var(--text-primary);
+}
+
 .color-swatches {
   display: flex; flex-wrap: wrap; gap: 6px;
 }

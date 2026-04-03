@@ -1,0 +1,62 @@
+[
+  {
+    "id": "i4PhypyzCy2aHqP1aInF",
+    "filename": "avatar_0.glb",
+    "name": "Teste",
+    "gender": "male"
+  },
+  {
+    "id": "Qz5fpdPesPTESN7FSQsN",
+    "filename": "avatar_1.glb",
+    "name": "Lucas",
+    "gender": "male"
+  },
+  {
+    "id": "Ii5aRlFbwsDM4sStvxfa",
+    "filename": "avatar_2.glb",
+    "name": "Ana",
+    "gender": "female"
+  },
+  {
+    "id": "Xu9ND8VKEWB7oqdvT8pr",
+    "filename": "avatar_3.glb",
+    "name": "Christian",
+    "gender": "male"
+  },
+  {
+    "id": "JFcb4g54YN6b9pdLNP1a",
+    "filename": "avatar_4.glb",
+    "name": "Maria",
+    "gender": "female"
+  },
+  {
+    "id": "LYxKt3sBQSrlRrKZnyj8",
+    "filename": "avatar_5.glb",
+    "name": "Pedro",
+    "gender": "male"
+  },
+  {
+    "id": "rOERa1trJF77tvFljFtC",
+    "filename": "avatar_6.glb",
+    "name": "Julia",
+    "gender": "female"
+  },
+  {
+    "id": "T4gRNYtf1bQKu93IuyER",
+    "filename": "avatar_7.glb",
+    "name": "Rafael",
+    "gender": "male"
+  },
+  {
+    "id": "ZHWCmiu53vLnaxP40wJ5",
+    "filename": "avatar_8.glb",
+    "name": "Camila",
+    "gender": "female"
+  },
+  {
+    "id": "TYwvSqoX9iyrmMOXV89q",
+    "filename": "avatar_9.glb",
+    "name": "Carlos",
+    "gender": "male"
+  }
+]

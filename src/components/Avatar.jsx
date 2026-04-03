@@ -4,11 +4,7 @@ import { useGLTF, useFBX, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import useStore from '../store.js';
-
-const MODEL_URLS = [
-  '/models/646d9dcdc8a5f5bddbfac913.glb',
-  '/models/avatar2.glb',
-];
+import { AVATAR_CATALOG } from '../data/avatarCatalog.js';
 
 const EMOTE_ANIM = {
   wave: 'Greeting',
@@ -47,16 +43,19 @@ const VISEME_TO_ARKIT = {
 const ARKIT_MOUTH_KEYS = [...new Set(Object.values(VISEME_TO_ARKIT).flatMap(v => Object.keys(v)))];
 
 const COLOR_MESH_MAP = {
-  skinColor:    ['Wolf3D_Head', 'Wolf3D_Body', 'Streamoji_Head', 'Streamoji_Body'],
-  hairColor:    ['Wolf3D_Hair', 'Streamoji_Hair'],
-  topColor:     ['Wolf3D_Outfit_Top', 'Streamoji_Outfit_Top'],
-  bottomColor:  ['Wolf3D_Outfit_Bottom', 'Streamoji_Outfit_Bottom'],
-  shoeColor:    ['Wolf3D_Outfit_Footwear', 'Streamoji_Outfit_Footwear'],
+  skinColor:    ['Streamoji_Head', 'Streamoji_Body'],
+  eyeColor:     ['EyeLeft', 'EyeRight'],
+  hairColor:    ['Streamoji_Hair'],
+  topColor:     ['Streamoji_Outfit_Top'],
+  bottomColor:  ['Streamoji_Outfit_Bottom'],
+  shoeColor:    ['Streamoji_Outfit_Footwear'],
 };
 
 export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   const group = useRef();
-  const modelUrl = MODEL_URLS[avatarId] || MODEL_URLS[0];
+  const selectedIdx = useStore(s => s.selectedAvatars[avatarId]);
+  const entry = AVATAR_CATALOG[selectedIdx] || AVATAR_CATALOG[0];
+  const modelUrl = `/models/${entry.filename}`;
   const { scene: originalScene } = useGLTF(modelUrl);
   const avatarPropsForMe = useStore(s => s.avatarProps[avatarId]);
 
@@ -224,36 +223,49 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
     const hips = bonesRef.current['Hips'];
     if (hips) hips.position.copy(HIPS_POS);
 
-    if (isThisSpeaking) {
+    {
       const _q = new THREE.Quaternion();
       const _e = new THREE.Euler();
 
       const rArm = bonesRef.current['RightUpperArm'];
       if (rArm) {
-        _e.set(Math.sin(t * 0.8) * 0.04, 0, -0.03 + Math.sin(t * 0.5) * -0.03);
+        _e.set(0, 0, -0.12);
         _q.setFromEuler(_e);
         rArm.quaternion.multiply(_q);
       }
 
       const lArm = bonesRef.current['LeftUpperArm'];
       if (lArm) {
-        _e.set(Math.sin(t * 0.7 + 1) * 0.04, 0, 0.03 + Math.sin(t * 0.4 + 0.5) * 0.03);
+        _e.set(0, 0, 0.12);
         _q.setFromEuler(_e);
         lArm.quaternion.multiply(_q);
       }
 
-      const rFore = bonesRef.current['RightForeArm'];
-      if (rFore) {
-        _e.set(Math.sin(t * 1.2) * 0.06, Math.sin(t * 0.9) * 0.03, 0);
-        _q.setFromEuler(_e);
-        rFore.quaternion.multiply(_q);
-      }
+      if (isThisSpeaking) {
+        if (rArm) {
+          _e.set(Math.sin(t * 0.8) * 0.04, 0, Math.sin(t * 0.5) * -0.03);
+          _q.setFromEuler(_e);
+          rArm.quaternion.multiply(_q);
+        }
+        if (lArm) {
+          _e.set(Math.sin(t * 0.7 + 1) * 0.04, 0, Math.sin(t * 0.4 + 0.5) * 0.03);
+          _q.setFromEuler(_e);
+          lArm.quaternion.multiply(_q);
+        }
 
-      const lFore = bonesRef.current['LeftForeArm'];
-      if (lFore) {
-        _e.set(Math.sin(t * 1.0 + 0.8) * 0.06, Math.sin(t * 0.7 + 1.2) * 0.03, 0);
-        _q.setFromEuler(_e);
-        lFore.quaternion.multiply(_q);
+        const rFore = bonesRef.current['RightForeArm'];
+        if (rFore) {
+          _e.set(Math.sin(t * 1.2) * 0.06, Math.sin(t * 0.9) * 0.03, 0);
+          _q.setFromEuler(_e);
+          rFore.quaternion.multiply(_q);
+        }
+
+        const lFore = bonesRef.current['LeftForeArm'];
+        if (lFore) {
+          _e.set(Math.sin(t * 1.0 + 0.8) * 0.06, Math.sin(t * 0.7 + 1.2) * 0.03, 0);
+          _q.setFromEuler(_e);
+          lFore.quaternion.multiply(_q);
+        }
       }
     }
 
@@ -288,5 +300,5 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   );
 }
 
-useGLTF.preload(MODEL_URLS[0]);
-useGLTF.preload(MODEL_URLS[1]);
+useGLTF.preload('/models/avatar_1.glb');
+useGLTF.preload('/models/avatar_2.glb');
