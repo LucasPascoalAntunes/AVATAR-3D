@@ -156,6 +156,8 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
   const currentAnimRef = useRef('Idle');
   const timeoutRef = useRef(null);
   const bonesRef = useRef({});
+  const allBonesRef = useRef({});
+  const restQuatsRef = useRef({});
   const clockRef = useRef(0);
   const isArkitRef = useRef(false);
 
@@ -166,6 +168,7 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
     const morphMeshes = [];
     const bones = {};
     const boneNames = new Set();
+    const allBoneInstances = {};
     avatarScene.traverse(obj => {
       if (obj.isMesh || obj.isSkinnedMesh) {
         obj.castShadow = true;
@@ -176,13 +179,27 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
         morphMeshes.push(obj);
       }
       if (obj.isBone) {
-        bones[obj.name] = obj;
+        if (!bones[obj.name]) bones[obj.name] = obj;
         boneNames.add(obj.name);
+        if (!allBoneInstances[obj.name]) allBoneInstances[obj.name] = [];
+        allBoneInstances[obj.name].push(obj);
       }
     });
     morphMeshesRef.current = morphMeshes;
     bonesRef.current = bones;
     isArkitRef.current = morphMeshes.some(m => 'jawOpen' in (m.morphTargetDictionary || {}));
+
+    const restQuats = {};
+    for (const name of Object.keys(bones)) {
+      restQuats[name] = bones[name].quaternion.clone();
+    }
+    restQuatsRef.current = restQuats;
+
+    const dupes = {};
+    for (const [name, instances] of Object.entries(allBoneInstances)) {
+      if (instances.length > 1) dupes[name] = instances;
+    }
+    allBonesRef.current = dupes;
 
     if (boneNames.size > 0) {
       Object.values(actions).forEach(action => {
@@ -253,30 +270,25 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
 
       const rArm = bonesRef.current['RightArm'];
       if (rArm) {
-        _e.set(0.05, 0, -0.25);
-        _q.setFromEuler(_e);
+        _q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.14);
         rArm.quaternion.multiply(_q);
       }
 
       const lArm = bonesRef.current['LeftArm'];
       if (lArm) {
-        _e.set(0.05, 0, 0.25);
-        _q.setFromEuler(_e);
+        _q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.14);
         lArm.quaternion.multiply(_q);
       }
 
-      const rForeIdle = bonesRef.current['RightForeArm'];
-      if (rForeIdle) {
-        _e.set(0, -0.05, -0.08);
-        _q.setFromEuler(_e);
-        rForeIdle.quaternion.multiply(_q);
+      const rFore = bonesRef.current['RightForeArm'];
+      if (rFore) {
+        _q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.04);
+        rFore.quaternion.multiply(_q);
       }
-
-      const lForeIdle = bonesRef.current['LeftForeArm'];
-      if (lForeIdle) {
-        _e.set(0, 0.05, 0.08);
-        _q.setFromEuler(_e);
-        lForeIdle.quaternion.multiply(_q);
+      const lFore = bonesRef.current['LeftForeArm'];
+      if (lFore) {
+        _q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.04);
+        lFore.quaternion.multiply(_q);
       }
 
       if (isThisSpeaking) {
@@ -290,19 +302,26 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
           _q.setFromEuler(_e);
           lArm.quaternion.multiply(_q);
         }
-
-        const rFore = bonesRef.current['RightForeArm'];
         if (rFore) {
           _e.set(Math.sin(t * 1.2) * 0.06, Math.sin(t * 0.9) * 0.03, 0);
           _q.setFromEuler(_e);
           rFore.quaternion.multiply(_q);
         }
-
-        const lFore = bonesRef.current['LeftForeArm'];
         if (lFore) {
           _e.set(Math.sin(t * 1.0 + 0.8) * 0.06, Math.sin(t * 0.7 + 1.2) * 0.03, 0);
           _q.setFromEuler(_e);
           lFore.quaternion.multiply(_q);
+        }
+      }
+
+      for (const [name, instances] of Object.entries(allBonesRef.current)) {
+        const primary = bonesRef.current[name];
+        if (!primary) continue;
+        for (const inst of instances) {
+          if (inst !== primary) {
+            inst.quaternion.copy(primary.quaternion);
+            inst.position.copy(primary.position);
+          }
         }
       }
     }
