@@ -253,16 +253,30 @@ export default function Avatar({ avatarId = 0, position = [0, 0, 0] }) {
 
       const rArm = bonesRef.current['RightArm'];
       if (rArm) {
-        _e.set(0, 0, -0.12);
+        _e.set(0.05, 0, -0.25);
         _q.setFromEuler(_e);
         rArm.quaternion.multiply(_q);
       }
 
       const lArm = bonesRef.current['LeftArm'];
       if (lArm) {
-        _e.set(0, 0, 0.12);
+        _e.set(0.05, 0, 0.25);
         _q.setFromEuler(_e);
         lArm.quaternion.multiply(_q);
+      }
+
+      const rForeIdle = bonesRef.current['RightForeArm'];
+      if (rForeIdle) {
+        _e.set(0, -0.05, -0.08);
+        _q.setFromEuler(_e);
+        rForeIdle.quaternion.multiply(_q);
+      }
+
+      const lForeIdle = bonesRef.current['LeftForeArm'];
+      if (lForeIdle) {
+        _e.set(0, 0.05, 0.08);
+        _q.setFromEuler(_e);
+        lForeIdle.quaternion.multiply(_q);
       }
 
       if (isThisSpeaking) {

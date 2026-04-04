@@ -20,7 +20,7 @@ const useStore = create((set, get) => ({
   isPaused: false,
   speechRate: 1.0,
   autoAdvance: true,
-  totalSlides: 5,
+  totalSlides: 12,
   activePresenter: 0,
 
   selectedAvatars: [0, 1],

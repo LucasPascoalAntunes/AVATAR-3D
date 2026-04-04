@@ -229,6 +229,54 @@ export function SparkIcon({ size = 16, color = 'currentColor' }) {
   );
 }
 
+export function CrosshairIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><line x1="22" y1="12" x2="18" y2="12" /><line x1="6" y1="12" x2="2" y2="12" /><line x1="12" y1="6" x2="12" y2="2" /><line x1="12" y1="22" x2="12" y2="18" />
+    </svg>
+  );
+}
+
+export function LayersIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
+    </svg>
+  );
+}
+
+export function GlobeIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
+export function DatabaseIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    </svg>
+  );
+}
+
+export function ShieldIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+export function LightbulbIcon({ size = 24, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
+    </svg>
+  );
+}
+
 const EMOTE_ICONS = {
   smile: SmileIcon, frown: FrownIcon, zap: ZapIcon, alert: AlertCircleIcon,
   hand: HandIcon, mic: MicIcon, arrowUp: ArrowUpIcon, expand: ExpandIcon,
@@ -240,7 +288,13 @@ export function EmoteIcon({ name, size = 16, color = 'currentColor' }) {
   return Comp ? <Comp size={size} color={color} /> : null;
 }
 
-const ICON_MAP = { graduation: GraduationIcon, target: TargetIcon, flask: FlaskIcon, barchart: BarChartIcon, award: AwardIcon };
+const ICON_MAP = {
+  graduation: GraduationIcon, target: TargetIcon, flask: FlaskIcon,
+  barchart: BarChartIcon, award: AwardIcon, brain: BrainIcon,
+  alert: AlertCircleIcon, crosshair: CrosshairIcon, layers: LayersIcon,
+  globe: GlobeIcon, database: DatabaseIcon, shield: ShieldIcon,
+  settings: SettingsIcon, lightbulb: LightbulbIcon,
+};
 
 export function SlideIcon({ name, size = 24, color = 'currentColor' }) {
   const Comp = ICON_MAP[name];
